@@ -2,6 +2,7 @@ from wine import Wine
 import os.path
 import pandas as pd
 from tabulate import tabulate
+import pickle
 
 
 def print_menu():
@@ -63,15 +64,59 @@ def input_csv_path():
             print("File not found, please enter a valid file path.")
         else:
             try:
-                df = pd.read_csv(csv_path, sep=";")
+                df = pd.read_csv(csv_path, sep=",")
                 print(
-                    "Data successfully loaded from CSV file.\n Here are the first five rows from the CSV file.\n")
+                    "\nData successfully loaded from CSV file.\n\nHere are the first five rows from the CSV file.\n\n")
                 # display first 5 rows of the DataFrame
                 print(tabulate(df.head(),  headers='keys', showindex=False,
                       tablefmt='fancy_grid',  numalign="center", stralign="center"))
+                do_prediction(df, csv_path)
                 break
             except Exception as e:
                 print("An exception occurred: ", e)
+
+
+def do_prediction(df, filePath):
+    try:
+        print("\n")
+        # Print summary of data
+        print(df.info())
+        # Check the shape of the input data
+        if df.shape[1] != 11:
+            raise ValueError(
+                f"Feature shape mismatch, expected: 11, got: {df.shape[1]}")
+        # Load the machine learning model
+        MODEL_PATH = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "models", "wide_prediction2.h5"))
+
+        with open(MODEL_PATH, 'rb') as f:
+            model = pickle.load(f)
+            results = model.predict(df)
+            # Create a new DataFrame with the predictions
+            # output_data = pd.DataFrame(results, columns=['quality'])
+            df['quality_prediction'] = results
+            output_data = df
+            print(
+                "\n\033[32mPredictions are generated successfully.\n\nHere are the first five rows from the prediction results.\n\n\033[0m")
+            # display first 5 rows of the DataFrame
+            print(tabulate(output_data.head(),  headers='keys', showindex=False,
+                           tablefmt='fancy_grid',  numalign="center", stralign="center"))
+            print("\n")
+            # Get the directory and base name of the input file
+            input_dirname = os.path.dirname(filePath)
+            input_basename = os.path.basename(filePath)
+
+            # Create the output file path
+            output_filename = os.path.join(
+                input_dirname, f'{os.path.splitext(input_basename)[0]}-predictions.csv')
+
+            # Write the output DataFrame to a CSV file
+            output_data.to_csv(output_filename, index=False)
+
+            print(
+                f"\033[32m\033[1mPredictions saved to {output_filename}\033[0m\n")
+    except Exception as ex:
+        print(ex)
 
 
 if __name__ == "__main__":
