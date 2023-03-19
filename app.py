@@ -49,6 +49,19 @@ def input_features(wine):
         wine.set_alcohol(alcohol)
 
         wine.print_wine_attributes()
+
+        # create an empty dataframe
+        df = pd.DataFrame(columns=['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar',
+                          'chlorides', 'free sulfur dioxide', 'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol'])
+
+        # create a dictionary with the user inputs
+        row_dict = {'fixed acidity': fixed_acidity, 'volatile acidity': volatile_acidity, 'citric acid': citric_acid, 'residual sugar': residual_sugar, 'chlorides': chlorides,
+                    'free sulfur dioxide': free_sulfur_dioxide, 'total sulfur dioxide': total_sulfur_dioxide, 'density': density, 'pH': pH, 'sulphates': sulphates, 'alcohol': alcohol}
+
+        # add the dictionary as a new row to the dataframe
+        df = df.append(row_dict, ignore_index=True)
+        do_prediction(df, "")
+
     except Exception as e:
         # print("Invalid input")
         print("An exception occurred: ", e)
@@ -96,27 +109,35 @@ def do_prediction(df, filePath):
             # output_data = pd.DataFrame(results, columns=['quality'])
             df['quality_prediction'] = results
             output_data = df
+            count = 'first five' if (df.shape[0] > 5) else str(df.shape[0])
+            display_message = 'Wine Prediction for the given features' if filePath is None else 'Here are the {} rows from the prediction results.'.format(
+                count)
             print(
-                "\n\033[32mPredictions are generated successfully.\n\nHere are the first five rows from the prediction results.\n\n\033[0m")
+                "\n\033[32mPredictions are generated successfully.\n\n{}\n\n\033[0m".format(display_message))
             # display first 5 rows of the DataFrame
             print(tabulate(output_data.head(),  headers='keys', showindex=False,
                            tablefmt='fancy_grid',  numalign="center", stralign="center"))
             print("\n")
-            # Get the directory and base name of the input file
-            input_dirname = os.path.dirname(filePath)
-            input_basename = os.path.basename(filePath)
-
-            # Create the output file path
-            output_filename = os.path.join(
-                input_dirname, f'{os.path.splitext(input_basename)[0]}-predictions.csv')
-
-            # Write the output DataFrame to a CSV file
-            output_data.to_csv(output_filename, index=False)
-
-            print(
-                f"\033[32m\033[1mPredictions saved to {output_filename}\033[0m\n")
+            if filePath:
+                save_to_csv(filePath, output_data)
     except Exception as ex:
         print(ex)
+
+
+def save_to_csv(filePath, output_data):
+    # Get the directory and base name of the input file
+    input_dirname = os.path.dirname(filePath)
+    input_basename = os.path.basename(filePath)
+
+    # Create the output file path
+    output_filename = os.path.join(
+        input_dirname, f'{os.path.splitext(input_basename)[0]}-predictions.csv')
+
+    # Write the output DataFrame to a CSV file
+    output_data.to_csv(output_filename, index=False)
+
+    print(
+        f"\033[32m\033[1mPredictions saved to {output_filename}\033[0m\n")
 
 
 if __name__ == "__main__":
@@ -137,6 +158,6 @@ if __name__ == "__main__":
         elif (option == 0):
             break
         else:
-            option = 0
+            option = -1
 
 print("\n\033[32mThank you for using wine prediction system. We hope you'll come back soon! \033[0m\n")
