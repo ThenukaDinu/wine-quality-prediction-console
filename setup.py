@@ -14,7 +14,7 @@ subprocess.run(activate_this, shell=True, check=True)
 packages = [
     'pandas', 'numpy', 'tqdm', 'scipy', 'matplotlib',
     'seaborn', 'plotly', 'scikit-learn', 'lightgbm',
-    'xgboost[scikit-learn]', 'Jinja2', 'catboost', 'tabulate'
+    'xgboost[scikit-learn]', 'xgboost', 'sklearn', 'Jinja2', 'catboost', 'tabulate'
 ]
 
 for package in packages:
